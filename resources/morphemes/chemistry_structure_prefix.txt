@@ -1,0 +1,53 @@
+\u03B1-
+\u03B1
+\u03B2-
+\u03B2
+alpha-
+alpha
+beta-
+beta
+cis
+epi
+hemi
+iso
+poly
+trans
+ortho
+para
+sec-
+tert-
+tertio
+t-
+i-
+D-
+L-
+R-
+p-
+N,N-
+N-
+O-
+C-
+E\)-
+R,S\)-
+R\)-
+S\)-
+Z\)-
+alpha -
+beta -
+sec -
+tert -
+t -
+i -
+D -
+L -
+R -
+p -
+N, N -
+N -
+O -
+C -
+E \) -
+R , S \) -
+R \) -
+S \) -
+Z \) -

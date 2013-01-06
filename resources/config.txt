@@ -1,0 +1,14 @@
+# Chemistry morphemes
+# =====================================================
+drug_suffix: morphemes/drug_suffix.txt
+chemistry_symbol: morphemes/chemistry_symbol.txt
+chemistry_element_name: morphemes/chemistry_element_name.txt
+chemistry_inorganic_compound: morphemes/chemistry_inorganic_compound.txt
+chemistry_alkane_root: morphemes/chemistry_alkane_root.txt
+chemistry_ion_root: morphemes/chemistry_ion_root.txt
+chemistry_alkane_suffix: morphemes/chemistry_alkane_suffix.txt
+chemistry_oxidation_prefix: morphemes/chemistry_oxidation_prefix.txt
+chemistry_oxidation_suffix: morphemes/chemistry_oxidation_suffix.txt
+chemistry_multiplier: morphemes/chemistry_multiplier.txt
+chemistry_structure_prefix: morphemes/chemistry_structure_prefix.txt
+chemistry_amino_acid: morphemes/chemistry_amino_acid.txt

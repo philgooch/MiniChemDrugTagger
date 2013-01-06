@@ -1,0 +1,5 @@
+<CREOLE-DIRECTORY ID="org.philgooch.MiniChemDrugTagger" VERSION="0.1" GATE-MIN="6.1" DESCRIPTION="Annotates chemicals and drug names using morpheme-based regexes.">
+  <CREOLE>
+      <JAR SCAN="true">MiniChemDrugTagger.jar</JAR>
+  </CREOLE>
+</CREOLE-DIRECTORY>

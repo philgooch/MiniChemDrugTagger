@@ -1,0 +1,143 @@
+/*
+ *  Copyright (c) 2012, Phil Gooch. 
+ *
+ *  This software is licenced under the GNU Library General Public License,
+ *  http://www.gnu.org/copyleft/gpl.html Version 3, 29 June 2007
+ *
+ *  Phil Gooch 04/2012
+*/
+
+
+Imports: {
+	import static gate.Utils.*;
+}
+
+
+Phase:	OrganicChemistry
+Input:  Split Sentence Token tmpChemical tmpAminoAcid tmpDrug tmpFormula
+Options: control = appelt
+
+
+
+MACRO: AMINO_ACID
+(
+	{tmpAminoAcid} |
+	{Token.length > 7, Token.string =~ "(?i)amine$"}
+)
+
+MACRO: ENZYME
+(
+	{Token.length > 5, Token.string =~ "[dlknr]ase|protease|nuclease$"}
+)
+
+MACRO: NEUROTRANSMITTER
+(
+	{Token.length > 8, Token.string =~"(nosine|ephrine)$" }
+)
+
+MACRO: PROTEIN
+(
+	{Token.length > 5, Token.string =~"(nin|globin|uorin|protein)$"}
+)
+
+MACRO: HORMONE
+(
+	{Token.length > 8, Token.string =~"(nogen|sterone|isone|glandin|globulin)$" }
+)
+
+MACRO: COMPLEX
+(
+	(AMINO_ACID) | (ENZYME) | (NEUROTRANSMITTER) | (HORMONE) | (PROTEIN)
+)
+
+
+/* Use of a repeat pattern greater than [1, 2] leads to FSM state explosion in longer documents */
+MACRO: RING
+(
+	(
+		({Token.kind == number, !Token within tmpFormula})[1, 2]
+		({Token.string == "'"})?
+		({Token.subkind == dashpunct})?
+		(
+			({Token.string ==~ "\\{|\\[|\\("})?
+			({Token.string ==~ "(\\d+|RS|R|S|E|Z|D|L|N|H|C|O)\\-?"})[1, 2]
+			({Token.string == ","})?
+			({Token.string ==~ "\\]|\\)|\\}"})?
+		)[0, 2]
+		({Token.string == ","})?
+	)[1, 2]
+	({Token.subkind == dashpunct})?
+)
+
+
+
+/* Use of a repeat pattern greater than [1, 5] leads to FSM state explosion */
+Rule: MatchOrganicMolecule
+(
+	(
+		{Token.string == "N"}
+		{Token.string == ","}
+	)?
+	(RING)?
+	({Token.string ==~ "\\{|\\[|\\("})?
+	(
+		(RING)?
+		({Token.string ==~ "\\{|\\[|\\("})?
+		(RING)?
+		({tmpChemical.type == "organic-fragment"} | {tmpChemical.type ==~ "inorganic\\-(ion|compound)"} | (COMPLEX) )
+		({Token.string ==~ "\\]|\\)|\\}"})?
+		({Token.subkind == dashpunct})?
+	)[1, 5]
+	({Token.string ==~ "\\]|\\)|\\}"})?
+	(RING)?
+	({tmpChemical.type ==~ "element|inorganic\\-(ion|compound)"})[0, 2]
+):a
+-->
+:a.tmpOrganicMolecule={type="organic" rule="MatchOrganicMolecule"}
+
+
+
+Rule: MatchAminoAcid
+(
+	AMINO_ACID
+):a
+-->
+:a.tmpOrganicMolecule={type="amino-acid" rule="MatchAminoAcid"}
+
+
+
+Rule: MatchEnzyme
+(
+    ENZYME
+):a
+-->
+:a.tmpOrganicMolecule = {type="enzyme", rule="MatchEnzyme"}
+  
+  
+  
+Rule: MatchProtein
+(
+    PROTEIN
+):a
+-->
+:a.tmpOrganicMolecule = {type="protein", rule="MatchProtein"}
+    
+
+
+
+Rule: MatchHormone
+(
+    HORMONE
+):a
+-->
+:a.tmpOrganicMolecule = {type="hormone", rule="MatchHormone"}
+
+
+Rule: MatchNeurotransmitter
+(
+    NEUROTRANSMITTER
+):a
+-->
+:a.tmpOrganicMolecule = {type="neurotransmitter", rule="MatchNeurotransmitter"}
+
+

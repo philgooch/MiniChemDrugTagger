@@ -1,0 +1,65 @@
+/*
+ *  Copyright (c) 2012, Phil Gooch. 
+ *
+ *  This software is licenced under the GNU Library General Public License,
+ *  http://www.gnu.org/copyleft/gpl.html Version 3, 29 June 2007
+ *
+ *  Phil Gooch 04/2012
+*/
+
+
+Imports: {
+	import static gate.Utils.*;
+}
+
+
+Phase:	InorganicChemistry
+Input:  Split Sentence Token tmpChemical tmpOxidationSuffix tmpElement tmpOrganicMolecule
+Options: control = appelt
+
+MACRO: VALENCE
+(
+	(
+		{Token.string ==~ "\\[|\\("}
+		{Token.string ==~ "I|II|III|IV|V|VI|VII|VIII|IX|di|tri"}
+		(
+			{Token.string == ","}
+			{Token.string ==~ "I|II|III|IV|V|VI|VII|VIII|IX"}
+		)?
+		{Token.string ==~ "\\]|\\)"}
+	)?
+)
+
+
+Rule: MatchLoneElement
+(
+	{tmpChemical.type ==~ "element"} |
+	{tmpChemical@string ==~ "acid(s)?|alcohol(s)?|ketone(s)?|water"}
+):a
+-->
+{}
+
+
+Rule: MatchInorganicMolecule
+(
+	(
+		(
+			(
+				{Token contains tmpOxidationSuffix}
+				{tmpChemical.type == "inorganic-compound"}
+			) |
+			(
+				({tmpElement})?
+				{tmpChemical.type ==~ "element|inorganic\\-ion|inorganic\\-compound"}
+			)
+		)
+		(VALENCE)
+	)[1, 5]
+	({tmpOrganicMolecule} (VALENCE) )?
+):a
+-->
+:a.tmpInorganicMolecule={type="inorganic" rule="MatchInorganicMolecule"}
+
+
+
+

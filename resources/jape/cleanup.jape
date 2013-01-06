@@ -1,0 +1,81 @@
+/*
+ *  Copyright (c) 2012, Phil Gooch. 
+ *
+ *  This software is licenced under the GNU Library General Public License,
+ *  http://www.gnu.org/copyleft/gpl.html Version 3, 29 June 2007
+ *
+ *  Phil Gooch 04/2012
+*/
+
+
+Imports: {
+	import static gate.Utils.*;
+}
+
+
+Phase:	Cleanup
+Input:  Split Sentence Token tmpFormula  tmpDrug tmpAlkaneRoot  tmpIonRoot  tmpAlkaneSuffix  tmpInorganicCompound  tmpOxidationPrefix  tmpOxidationSuffix  tmpElement  tmpInorganicIon  tmpAminoAcid  tmpMultiplier  tmpStructure tmpChemical tmpOrganicMolecule tmpInorganicMolecule
+Options: control = all
+
+
+
+
+
+Rule: RemoveChemicalPre
+(
+	{tmpInorganicMolecule} | 
+	{tmpOrganicMolecule} |
+	{tmpFormula}
+):a
+-->
+:a {
+	AnnotationSet tokAS = inputAS.get("Token", start(aAnnots), end(aAnnots) );
+	if ( !tokAS.isEmpty() ) {		
+		Long tokStart = start(tokAS);
+		Long tokEnd = end(tokAS);
+		Long chemStart = start(aAnnots);
+		Long chemEnd = end(aAnnots);
+		if (tokStart < chemStart || chemEnd < tokEnd) {
+			outputAS.removeAll(aAnnots);
+		}
+	}
+}
+
+
+Rule: RemoveNested
+(
+	{tmpFormula within tmpInorganicMolecule} |
+	{tmpFormula within tmpOrganicMolecule} |
+	{tmpDrug within tmpInorganicMolecule} |
+	{tmpDrug within tmpOrganicMolecule} |
+	{tmpInorganicMolecule within tmpOrganicMolecule} |
+	{tmpOrganicMolecule@string ==~ "(acid(s)?|alcohol(s)?|ketone(s)?|water|period|purpose|(non\\-?(specific|systematic))|indeterminate|indefinate|indicate(s)?)(\\s*[\\-\\)\\]\\}])?"}
+):a
+-->
+:a {
+	AnnotationSet ignore = (AnnotationSet)bindings.get("a");
+	outputAS.removeAll(ignore);
+}
+
+
+
+Rule: RemoveTemp
+(
+	{tmpAlkaneRoot} | 
+	{tmpIonRoot} | 
+	{tmpAlkaneSuffix} | 
+	{tmpInorganicCompound} | 
+	{tmpOxidationPrefix} | 
+	{tmpOxidationSuffix} | 
+	{tmpElement} | 
+	{tmpInorganicIon} | 
+	{tmpAminoAcid} | 
+	{tmpMultiplier} | 
+	{tmpStructure} | 
+	{tmpChemical} 
+):a
+-->
+:a {
+	AnnotationSet ignore = (AnnotationSet)bindings.get("a");
+	outputAS.removeAll(ignore);
+}

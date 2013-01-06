@@ -1,0 +1,51 @@
+/*
+ *  Copyright (c) 2012, Phil Gooch. 
+ *
+ *  This software is licenced under the GNU Library General Public License,
+ *  http://www.gnu.org/copyleft/gpl.html Version 3, 29 June 2007
+ *
+ *  Phil Gooch 04/2012
+*/
+
+
+/*	Add this transducer to the pipeline before the tagger if using .iob files in GATE
+*   where unwanted whitespace has been added around punctuation tokens.
+*
+*/
+
+Imports: {
+	import static gate.Utils.*;
+}
+
+
+Phase:	CleanupSpace
+Input:  Token SpaceToken
+Options: control = all
+
+
+Rule: RemoveSpaceAfter
+(
+	(
+		{Token.string == "-"} |
+		{Token.string == "("} |
+		{Token.string == "["}
+	)
+	({SpaceToken}):s
+):a
+-->
+:a {
+	AnnotationSet ignore = (AnnotationSet)bindings.get("s");
+	outputAS.removeAll(ignore);
+}
+
+
+Rule: RemoveSpaceBefore
+(
+	({SpaceToken}):s
+	{Token.kind == punctuation}
+):a
+-->
+:a {
+	AnnotationSet ignore = (AnnotationSet)bindings.get("s");
+	outputAS.removeAll(ignore);
+}

@@ -1,0 +1,355 @@
+/*
+ *  Copyright (c) 2012, Phil Gooch. 
+ *
+ *  This software is licenced under the GNU Library General Public License,
+ *  http://www.gnu.org/copyleft/gpl.html Version 3, 29 June 2007
+ *
+ *  Phil Gooch 04/2012
+*/
+
+
+Imports: {
+	import static gate.Utils.*;
+}
+
+
+Phase:	Chemistry
+Input:  SpaceToken tmpAlkaneRoot tmpIonRoot tmpAlkaneSuffix tmpInorganicCompound tmpOxidationPrefix tmpOxidationSuffix tmpElement tmpInorganicIon tmpAminoAcid tmpMultiplier tmpStructure
+Options: control = appelt
+
+MACRO: SP
+(
+	({SpaceToken})?
+)
+
+MACRO: OX
+(
+	({tmpMultiplier})?
+	({tmpStructure})[0, 2]
+	({tmpOxidationPrefix})[0, 2]
+)
+
+
+MACRO: PRE
+(
+	(OX)
+	({tmpMultiplier})?
+)
+
+MACRO: PRE2
+(
+	(OX)
+	{tmpMultiplier}
+)
+
+// Common names that don't match IUPAC-like names, e.g. borax, phosgene
+Rule: MatchInorganicCompound
+(
+	(
+		(PRE)
+		({tmpIonRoot})?
+	)[1, 3]
+	{tmpInorganicCompound}
+):a
+-->
+:a.tmpChemical={type="inorganic-compound", rule="MatchInorganicCompound"}
+
+
+Rule: MatchInorganicIon
+(
+	(
+		(PRE)
+		({tmpIonRoot})[1, 3]
+	)[1, 3]
+	{tmpOxidationSuffix}
+):a
+-->
+:a.tmpChemical={type="inorganic-ion", rule="MatchInorganicIon"}
+
+
+Rule: MatchInorganicIon2
+(
+	(PRE)
+	({tmpIonRoot})[0, 2]
+	({tmpIonRoot}):lastIon
+):a
+-->
+:a.tmpChemical={type="inorganic-ion", rule="MatchInorganicIon2"}
+/*
+:a {
+	AnnotationSet tokAS = inputAS.get("Token", start(aAnnots), end(aAnnots) );
+	AnnotationSet lastIonAS = (AnnotationSet)bindings.get("lastIon");
+	Annotation lastIonAnn = lastIonAS.iterator().next();
+	if ( !tokAS.isEmpty() ) {	
+		List<Annotation> tokList = inDocumentOrder(tokAS);
+		Annotation tokAnn = tokList.get(0);
+		Long tokStart = start(tokAS);
+		Long tokEnd = end(tokAS);
+		Long ionStart = start(aAnnots);
+		Long ionEnd = end(aAnnots);
+		if (ionStart == tokStart) {
+			boolean exactMatch = false;
+			if (ionEnd == tokEnd) { exactMatch = true; }
+			if (! exactMatch ) {
+				String ion = (String)lastIonAnn.getFeatures().get("match");
+				String tok = (String)tokAnn.getFeatures().get("string");
+				if (tok != null && ion != null ) {
+					if ( tok.matches("^\\-?" + ion + "\\-.+$") || tok.matches("^.*" + ion + "[o\\-]{1,2}$") ) {
+						exactMatch = true;
+					}
+				}
+			}
+			if ( exactMatch ) {
+				FeatureMap fm = Factory.newFeatureMap();
+				fm.put("type", "inorganic-ion");
+				fm.put("rule", "MatchInorganicIon2");
+				outputAS.add(tokAS.firstNode(), tokAS.lastNode(), "tmpChemical", fm);
+			}
+		}
+	}
+}
+*/
+
+
+
+Rule: MatchOrganicFragment
+(
+	(PRE)
+	(
+		{tmpIonRoot} |
+		({tmpAlkaneRoot})
+	)[1, 3]
+	({tmpAlkaneSuffix})[1, 3]
+	({tmpOxidationSuffix})?
+	(
+		({tmpAlkaneRoot} | {tmpIonRoot} | {tmpInorganicCompound} | {tmpAminoAcid})
+		({tmpOxidationSuffix})?
+	)?
+	({tmpElement})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment"}
+
+
+Rule: MatchOrganicFragment2
+(
+	(PRE2)
+	({tmpAlkaneSuffix})[1, 3]
+	({tmpOxidationSuffix})?
+	({tmpIonRoot} | {tmpElement} | {tmpInorganicCompound} | {tmpAminoAcid})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment2"}
+
+
+Rule: MatchOrganicFragment3
+(
+	(PRE2)
+	(
+		{tmpIonRoot} |
+		{tmpAlkaneRoot}
+	)[1, 3]
+	({tmpIonRoot} | {tmpElement} | {tmpInorganicCompound})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment3"}
+
+
+Rule: MatchOrganicFragment4
+(
+	(PRE)
+	{tmpAlkaneRoot}
+	(
+		{tmpIonRoot} |
+		{tmpAlkaneRoot}
+	)[0, 3]
+	{tmpOxidationSuffix}
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment4"}
+
+
+
+Rule: MatchOrganicFragment5
+(
+	(PRE)
+	(
+		{tmpIonRoot} |
+		{tmpAlkaneRoot}
+	)[1, 3]
+	{tmpAlkaneRoot}
+	{tmpOxidationSuffix}
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment5"}
+
+
+Rule: MatchOrganicFragment6
+(
+	({tmpStructure})[0, 2]
+	(
+		(
+			{tmpAlkaneRoot}
+			{tmpIonRoot}
+		) |
+		(
+			{tmpIonRoot}
+			{tmpAlkaneRoot}
+		)
+	)
+	(
+		{tmpAlkaneRoot} |
+		{tmpIonRoot}
+	)?
+	({tmpElement})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment6"}
+
+
+Rule: MatchOrganicFragment6a
+(
+	({tmpStructure})[0, 2]
+	(
+		{tmpAlkaneRoot}
+	)[2, 4]
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment6a"}
+
+
+/* dimethylbenz */
+Rule: MatchOrganicFragment7
+(
+	({tmpMultiplier})?
+	{tmpAlkaneRoot}
+	{tmpAlkaneSuffix}
+	{tmpAlkaneRoot}
+	({tmpAlkaneSuffix})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment7"}
+
+
+
+Rule: MatchOrganicFragment8
+(
+	(PRE)
+	{tmpAlkaneRoot@string =~ "yl$"}
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment8"}
+
+
+
+Rule: MatchOrganicFragment9
+(
+	{tmpAlkaneSuffix@string ==~ "(?i)amine|amide|folate|aldehyde"}
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment9"}
+
+
+
+Rule: MatchOrganicFragment10
+(
+	(PRE)
+	(
+		{tmpAlkaneRoot}
+		{tmpAlkaneSuffix}
+	)[2, 5]
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragment10"}
+
+
+Rule: MatchMashup
+(
+	(
+		{tmpMultiplier}
+		{tmpStructure}
+		{tmpOxidationPrefix}
+		{tmpOxidationSuffix}
+		{tmpIonRoot}
+		{tmpAlkaneRoot}
+		{tmpAlkaneSuffix}
+	)[2, 12]
+	({tmpIonRoot} | {tmpElement} | {tmpInorganicCompound} | {tmpAminoAcid})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchMashup"}
+
+
+
+Rule: MatchOrganicFragmentRepeatableOR
+(
+	(PRE)
+	(
+		{tmpIonRoot} |
+		{tmpAlkaneRoot}
+	)
+	(
+		{tmpOxidationPrefix} |
+		{tmpMultiplier} |
+		{tmpIonRoot} |
+		{tmpAlkaneRoot}
+	)[1, 5]
+	({tmpAlkaneSuffix})[1, 3]
+	({tmpIonRoot})?
+	({tmpOxidationSuffix})?
+	({tmpIonRoot} | {tmpElement} | {tmpInorganicCompound} | {tmpAminoAcid})?
+):a
+-->
+:a.tmpChemical={type="organic-fragment", rule="MatchOrganicFragmentRepeatableOR"}
+
+
+
+Rule: MatchElement
+Priority: 100
+(
+	({tmpMultiplier})?
+	({tmpStructure})[0, 2]
+	({tmpMultiplier})?
+	{tmpElement}
+):a
+-->
+//:a.tmpChemical={type="element", rule="MatchElement"}
+:a {
+	AnnotationSet tokAS = inputAS.get("Token", start(aAnnots), end(aAnnots) );
+	if ( !tokAS.isEmpty() ) {	
+		Long tokStart = start(tokAS);
+		Long tokEnd = end(tokAS);
+		Long anatStart = start(aAnnots);
+		Long anatEnd = end(aAnnots);
+		if (anatEnd ==  tokEnd && anatStart == tokStart) {
+			FeatureMap fm = Factory.newFeatureMap();
+			fm.put("type", "element");
+			fm.put("rule", "MatchElement");
+			outputAS.add(aAnnots.firstNode(), aAnnots.lastNode(), "tmpChemical", fm);
+		}
+	}
+}
+
+
+Rule: MatchElement2
+Priority: 100
+(
+	({tmpElement}):one
+	({tmpElement}):two
+)
+-->
+:one.tmpChemical={type="element", rule="MatchElement2"},
+:two.tmpChemical={type="element", rule="MatchElement2"}
+
+
+Rule: MatchElement3
+Priority: 100
+(
+	({tmpElement}):one
+	({tmpElement}):two
+	({tmpElement}):three
+)
+-->
+:one.tmpChemical={type="element", rule="MatchElement3"},
+:two.tmpChemical={type="element", rule="MatchElement3"},
+:three.tmpChemical={type="element", rule="MatchElement3"}

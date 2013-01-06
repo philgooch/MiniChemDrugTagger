@@ -1,0 +1,22 @@
+alanine
+cysteine
+aspartic acid
+glutamic acid
+phenylalanine
+glycine
+histidine
+isoleucine
+lysine
+leucine
+methionine
+asparagine
+pyrrolysine
+proline
+glutamine
+arginine
+serine
+threonine
+selenocysteine
+valine
+tryptophan
+tyrosine
