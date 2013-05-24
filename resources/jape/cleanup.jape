@@ -48,6 +48,8 @@ Rule: RemoveNested
 	{tmpFormula within tmpOrganicMolecule} |
 	{tmpDrug within tmpInorganicMolecule} |
 	{tmpDrug within tmpOrganicMolecule} |
+	{tmpDrug within Token.category =~ "^VB"} |
+	{tmpOrganicMolecule within Token.category =~ "^VB"} |
 	{tmpInorganicMolecule within tmpOrganicMolecule} |
 	{tmpOrganicMolecule@string ==~ "(acid(s)?|alcohol(s)?|ketone(s)?|water|period|purpose|(non\\-?(specific|systematic))|indeterminate|indefinate|indicate(s)?)(\\s*[\\-\\)\\]\\}])?"}
 ):a
